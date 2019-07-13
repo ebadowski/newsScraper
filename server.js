@@ -24,10 +24,11 @@ db.on("error", function (error) {
 //Body Parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Main route (simple Hello World Message)
 app.get("/", function (req, res) {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
+  res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 
 
