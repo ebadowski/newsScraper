@@ -1,23 +1,17 @@
 $(document).ready(function () {
     $('.sidenav').sidenav();
+
     
 });
-
-// if not logged in change button to say sign in
-if (!sessionStorage.getItem("username")) {
-    logIn();
+function checkLoginState(){
+    // if not logged in change button to say sign in
+    if (!sessionStorage.getItem("username")) {
+        logIn();
+    }
+    else {
+        loggedIn();
+    }
 }
-else {
-    loggedIn();
-}
-
-
-
-
-
-
-
-
 
 $(document).on("click", "#new_user_btn", function () {
 
@@ -34,7 +28,7 @@ $(document).on("click", "#new_user_btn", function () {
         .then(function (data) {
             // Log the response
             console.log(data);
-            
+
             closeSideNav()
 
             sessionStorage.setItem("username", data.username);
@@ -50,7 +44,7 @@ $(document).on("click", "#login_btn", function () {
     let phone = $("#telephone").val();
     $.ajax({
         method: "GET",
-        url: "/users/"+username+'&'+phone
+        url: "/users/" + username + '&' + phone
     })
         // With that done
         .then(function (data) {
@@ -72,7 +66,7 @@ $(document).on("click", "#login_btn", function () {
 
 // logs user out
 $(document).on("click", "#logout_btn", function () {
-    
+
 
     sessionStorage.clear();
     $('.profile-img').empty();
@@ -102,7 +96,9 @@ function logIn() {
         '<div class="input-field col s6"> <input id="new_phone_number" type="text" class="validate">' +
         ' <label for="new_phone_number">New Phone Number</label> </div> </li> ' +
         '<li> <div class="input-field col s6"> <input id="profile_img" type="text" class="validate"> <label for="profile_img">Image URL</label> </div> </li>' +
-        '<a id="new_user_btn" class="waves-effect waves-teal btn-flat">Submit</a> ')
+        '<a id="new_user_btn" class="waves-effect waves-teal btn-flat">Submit</a> ');
+    // Changes state of comment box, function is in results.js 
+    changeCommentTextBox(false);
 }
 
 function loggedIn() {
@@ -111,9 +107,11 @@ function loggedIn() {
     $('.display-username').text(sessionStorage.getItem("username"))
     //Insert account view and log out btn(clears session storage)
     $('.sidenav-content').html('<a id="logout_btn" class="waves-effect waves-teal btn-flat">Logout</a>');
+    // Changes state of comment box, function is in results.js 
+    changeCommentTextBox(true);
 }
 
-function closeSideNav(){
+function closeSideNav() {
     var elem = document.querySelector('.sidenav');
     var instance = M.Sidenav.getInstance(elem);
     instance.close();
