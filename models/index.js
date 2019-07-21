@@ -1,5 +1,6 @@
 module.exports = {
   Article: require("./Article"),
-  Note: require("./Comment"),
-  User: require("./User.js")
+  Comment: require("./Comment"),
+  User: require("./User.js"),
+  Tab: require("./Tabs.js")
 };

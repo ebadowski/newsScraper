@@ -1,9 +1,9 @@
 $(document).ready(function () {
     $('.sidenav').sidenav();
 
-    
+
 });
-function checkLoginState(){
+function checkLoginState() {
     // if not logged in change button to say sign in
     if (!sessionStorage.getItem("username")) {
         logIn();
@@ -13,15 +13,15 @@ function checkLoginState(){
     }
 }
 
-$(document).on("click", "#new_user_btn", function () {
-
+$(document).on("click", "#new_user_btn", function (event) {
+    event.preventDefault()
     $.ajax({
         method: "POST",
         url: "/users/new",
         data: {
             username: $("#new_username").val(),
             phone: $("#new_phone_number").val(),
-            userimg: $("#profile_img").val()
+            imgLink: $("#profile_img").val()
         }
     })
         // With that done
@@ -34,7 +34,7 @@ $(document).on("click", "#new_user_btn", function () {
             sessionStorage.setItem("username", data.username);
             sessionStorage.setItem("phone", data.phone);
             sessionStorage.setItem("imgLink", data.imgLink);
-
+            sessionStorage.setItem("userID", data._id);
             loggedIn();
         });
 });
@@ -46,7 +46,6 @@ $(document).on("click", "#login_btn", function () {
         method: "GET",
         url: "/users/" + username + '&' + phone
     })
-        // With that done
         .then(function (data) {
             // Log the response
             console.log(data);
@@ -56,7 +55,7 @@ $(document).on("click", "#login_btn", function () {
             sessionStorage.setItem("username", data.username);
             sessionStorage.setItem("phone", data.phone);
             sessionStorage.setItem("imgLink", data.imgLink);
-
+            sessionStorage.setItem("userID", data._id);
             loggedIn()
         });
 });
@@ -66,8 +65,6 @@ $(document).on("click", "#login_btn", function () {
 
 // logs user out
 $(document).on("click", "#logout_btn", function () {
-
-
     sessionStorage.clear();
     $('.profile-img').empty();
     $('.display-username').empty()
@@ -102,7 +99,8 @@ function logIn() {
 }
 
 function loggedIn() {
-    $('.sidenav-trigger').text('Account')
+    $('.sidenav-trigger').text('Account');
+    $('.profile-img').empty();
     $('<img>', { class: "circle", src: sessionStorage.getItem("imgLink") }).appendTo('.profile-img');
     $('.display-username').text(sessionStorage.getItem("username"))
     //Insert account view and log out btn(clears session storage)

@@ -59,75 +59,143 @@ app.get("/", function (req, res) {
   res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 
-
-app.get("/all", function (req, res) {
+// CURRENTLY NOT POPULATING USER
+app.get("/tabs/all", function (req, res) {
+  db.Tab.find({})
+    .then(function (tabs) {
+      res.json(tabs);
+    });
+});
+///////////////////////////////////////////////////////////////////////
+// CURRENTLY NOT POPULATING USER
+// app.get("/tab/populate", function (req, res) {
+  app.get("/articles/:id", function (req, res) {
+    db.Tab.find({_id: req.params.id})
+      .populate("articles")
+      .populate("comments")
+      //populate users in comments excluding phone number
+      .populate("user", "-phone")
+      //..populate("users", "-phone")
+      .then(function (articles) {
+        res.json(articles);
+      });
+  });
+// CURRENTLY NOT POPULATING USER
+// app.get("/tab/populate", function (req, res) {
+  app.get("/all", function (req, res) {
   db.Article.find({})
-    //poppulate users in comments excluding phone number
-    .populate("users", "-phone")
+    .populate("comments")
+    //populate users in comments excluding phone number
+    .populate("user", "-phone")
+    //..populate("users", "-phone")
     .then(function (articles) {
       res.json(articles);
     });
 });
-
-
+////////////////////////////////////////////////////////////////
 app.get("/scrape", function (req, res) {
-  let elArr = []
-  axios.get("https://www.npr.org/sections/news/").then(function (response) {
-    var $ = cheerio.load(response.data);
-
-    $("div.item-info:has(p.teaser)").each(function (i, element) {
-
-      let entry = {
-        title: $('> h2', element).text(),
-        link: $('> h2', element).children().attr("href"),
-        summary: $('> p', element).text()
-      }
-          db.Article.create(entry, function (err, data) {
-            if (err) console.log(err);
+  scraperResponse = { error: false, message: [], lastTab:{} }
+  let today = new Date;
+  today = today.toDateString().substring(4);
+ 
+  // creates new date tab
+  db.Tab.create({ date: today })
+    .catch(function (error) {
+      console.log("Tab Post Failed!");
+      scraperResponse.error = true;
+      scraperResponse.message.push("Tab Post Failed!");
+    })
+    .then((data) => {
+      console.log(data)
+      scraperResponse.lastTab = data
+      return axios.get("https://www.npr.org/sections/news/")
+    })
+    .then(function (response) {
+      var $ = cheerio.load(response.data);
+      let entryArr = [];
+      $("div.item-info:has(p.teaser)").each(function (i, element) {
+        let summary = $('> p', element).text();
+        summary = summary.substring(summary.lastIndexOf("•") + 1)
+        //console.log(summary)
+        let entry = {
+          title: $('> h2', element).text(),
+          link: $('> h2', element).children().attr("href"),
+          summary: summary
+        }
+        entryArr.push(entry);
+      })
+      return entryArr;
+    })
+    .then((insertArr) => {
+      return db.Article.insertMany(insertArr)
+    })
+    .catch(function (error) {
+      console.log("Article Post Failed!");
+      scraperResponse.error = true;
+      scraperResponse.message.push("Article Post Failed!");
+    })
+    .then((articles) => {
+      for (var i in articles) {
+        db.Tab.update(
+          { date: today },
+          { $push: { articles: articles[i]._id } },
+          function (err, result) {
+            if (err) throw err;
+            //res.send(result)
           });
-
-    });
-  });
-  res.send(res.data);
+      }
+      return "done"
+    }).catch(function (error) {
+      console.log("Article Push into Tab Failed!", error);
+      scraperResponse.error = true;
+      scraperResponse.message.push("Article Push into Tab Failed!");
+    }).then(() => {
+      res.send(scraperResponse);
+    })
 });
+
 
 //Route to add comment to article
 app.post("/comment/:id", function (req, res) {
   console.log(req.body)
-  let comment = req.body; //will it be a string or object? need string
-  let id = req.params.id;
-  let myQuery = { _id: ObjectID(id) };
-  let newValues = { $push: { comments: comment } };
-  //let newValues = { $push: comment };
-  if (comment.comment && comment.user) {
-    db.newsscraper.update(myQuery, newValues, function (err, res) {
+  let articleID = req.params.id;
+  let newValues = req.body;
+  if (newValues.body && newValues.user) {
+    db.Comment.create(newValues, function (err, result) {
       if (err) throw err;
+      //res.send(result)
+      db.Article.update(
+        { _id: articleID },
+        { $push: { comments: result._id } },
+        function (err, resultArt) {
+          if (err) throw err;
+          res.send(resultArt)
+        });
     });
   }
   else {
     res.send({ message: "No comment or User data entered" })
   }
-  res.send({ message: "Done" })
 });
 
 
 // Route to make new user
 app.post("/users/new", function (req, res) {
   console.log(req.body)
-  let result = { message: "Incomplete" };
+
   let newValues = {
     username: req.body.username,
     phone: req.body.phone,
-    imgLink: req.body.userimg
+    imgLink: req.body.imgLink
   };
 
   if (newValues.username && newValues.phone && newValues.imgLink) {
-    db.User.create(newValues, function (err, res) {
+    db.User.create(newValues, function (err, result) {
       if (err) throw err;
+      res.send(result)
     })
-    result = newValues;
-  }
-  res.send(result)
+  } else { res.send({ message: "Incomplete" }) }
+
 });
 
 //route to log user in

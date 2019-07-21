@@ -1,7 +1,4 @@
-// let obj = {
-//     title: "Article Title",
-//     summary: "These are some words about this article, its news and stuff. these are some words about this article, its news and stuff. these are some words about this article, its news and stuff. "
-// }
+
 let testOBJ = {
     comments: [
         {
@@ -34,23 +31,84 @@ let testOBJ = {
 
 $(document).ready(function () {
     $('.collapsible').collapsible();
+
+    buildTabs();
+
+});
+
+function buildTabs() {
+    getTabs(function () {
+        //check if la
+        let tabID = $('li.tab > a.active').attr('tab_id');
+        console.log(tabID)
+        $('.tabs').tabs();
+        getArticles(tabID);
+    })
+}
+
+function getTabs(callback) {
+    $('.tabs-div').empty();
     $.ajax({
         method: "GET",
-        url: "/all"
+        url: "/tabs/all"
+    })
+        .then(function (data) {
+            //console.log(data);
+            let tabUL = $('<ul>', { class: "tabs" });
+            for (var i in data) {
+                let newTab = makeTab(data[i], (data.length - 1 == i));
+                newTab.appendTo(tabUL)
+            }
+
+            //if date of last entry != today
+            let today = new Date;
+            today = today.toDateString().substring(4);
+            if (data[i].date != today) {
+                let li = $('<li>', { class: 'scrape-tab tab col s3' });
+                let a = $('<a>', { class: "scrape-btn" }).appendTo(li);
+                $('<i>', { class: 'material-icons' }).text("add_circle_outline").appendTo(a);
+                li.appendTo(tabUL)
+            }
+
+            tabUL.appendTo('.tabs-div');
+            callback();
+        });
+}
+
+
+function makeTab(obj, bool) {
+    console.log(obj)
+    console.log(bool);
+    let li = $('<li>', { class: 'tab col s3' });
+    let a = $('<a>', {
+        class: "tab-btn",
+        tab_id: obj._id
+    }).text(obj.date).appendTo(li);
+
+    if (bool) { a.addClass("active") }
+    return li;
+}
+//CHANGE TO ONLY GET THE ONE TAB'S ARTICLES
+function getArticles(tabID) {
+    $('.article-list').empty()
+    $.ajax({
+        method: "GET",
+        url: "/articles/"+tabID
     })
         // With that done
         .then(function (data) {
             // Log the response
+            articles = data[0].articles
             console.log(data);
-            for (var i in data) {
-                makeArticleRow(data[i]);
+            console.log(articles);
+            for (var i in articles) {
+                makeArticleRow(articles[i]);
                 // checks if logged in already, function is in app.js but must wait for this call to end
                 checkLoginState();
             }
             $('.collapsible').collapsible();
         });
-
-});
+}
 
 function makeArticleRow(obj) {
     // makes collapsible container and contents
@@ -79,7 +137,7 @@ function makeArticleRow(obj) {
 
             comment.appendTo(commentList)
         }
-       
+
     } else {
         let pCom = $('<p>').text("No Comments Yet").appendTo(commentDiv);
     }
@@ -115,9 +173,9 @@ function makeArticleRow(obj) {
 function populateComments(obj) {
 
     // MAKE COMMENT WITH USERNAME AND IMAGE
-    let comment = $('<li>', { class: "collection-item avatar" , style:"height:auto" });
-    $('<img>',{src: obj.imgLink, class:"circle", style: "height:25px; width: 25px;"}).appendTo(comment);
-    $('<span>', {class:"title"}).text(obj.username).appendTo(comment);
+    let comment = $('<li>', { class: "collection-item avatar", style: "height:auto" });
+    $('<img>', { src: obj.imgLink, class: "circle", style: "height:25px; width: 25px;" }).appendTo(comment);
+    $('<span>', { class: "title" }).text(obj.username).appendTo(comment);
     $('<p>').text(obj.comment).appendTo(comment);
 
     return comment;
@@ -138,18 +196,72 @@ function changeCommentTextBox(bool) {
         // IF FALSE REPLACE WITH "LOGIN TO COMMENT"
         // hide submit btn
         $(".submit-comment").addClass("hide");
+        //DO THIS!!!!!
         // $('.materialize-textarea').val('Login to comment');
         // M.textareaAutoResize($('.materialize-textarea'));
     }
 }
 
 // ON CLICK FOR ADD COMMENT
-// AJAX FOR ADDING COMMENT
 // Submit comment function
 $(document).on("click", ".submit-comment", function () {
     event.preventDefault();
     let articleID = $(this).attr("articleID");
     console.log(articleID)
+    event.preventDefault()
+    $.ajax({
+        method: "POST",
+        url: "/comment/" + articleID,
+        data: {
+            user: sessionStorage.getItem("userID"),
+            body: $("#comment_text_" + articleID).val()
+        }
+    })
+        // With that done
+        .then(function (data) {
+            console.log(data)
+        });
+});
+
+//onclick for scraping date and articles
+$(document).on("click", ".scrape-btn", function () {
+    event.preventDefault();
+    console.log('hit')
+    //clear this elemt from tab ul
+    $('.scrape-tab').remove()
+    // get req for scraping
+    $.ajax({
+        method: "GET",
+        url: "/scrape"
+    })
+        .then(function (data) {
+            console.log(data.lastTab)
+            $('li.tab > a.active').removeClass("active");
+            let newTab = makeTab(data.lastTab, true);
+            newTab.appendTo('ul.tabs');
+        });
+});
+
+// tab-btn
+//onclick for changing date view
+$(document).on("click", ".tab-btn", function () {
+    event.preventDefault();
+    let tabID = $(this).attr("tab_id")
+    getArticles(tabID)
+
+    // //clear this elemt from tab ul
+    // $('.scrape-tab').remove()
+    // // get req for scraping
+    // $.ajax({
+    //     method: "GET",
+    //     url: "/scrape"
+    // })
+    //     .then(function (data) {
+    //         console.log(data.lastTab)
+    //         $('li.tab > a.active').removeClass("active");
+    //         let newTab = makeTab(data.lastTab, true);
+    //         newTab.appendTo('ul.tabs');
+    //     });
 });
 
 
@@ -157,5 +269,5 @@ $(document).on("click", ".submit-comment", function () {
 $(document).on("click", ".comment-header", function () {
     console.log("HIT")
     let box = $(this).next().find('.comment-container');
-    box.animate({ scrollTop: $(box).prop("scrollHeight")}, 1000);
+    box.animate({ scrollTop: $(box).prop("scrollHeight") }, 1000);
 });
