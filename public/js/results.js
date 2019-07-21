@@ -1,34 +1,4 @@
 
-let testOBJ = {
-    comments: [
-        {
-            comment: "this is the first comment",
-            username: "zeke",
-            imgLink: "https://www.stickpng.com/assets/images/5cb78e867ff3656569c8cebe.png"
-        },
-        {
-            comment: "this is the second comment",
-            username: "test",
-            imgLink: "https://vignette.wikia.nocookie.net/spongebobgalaxy/images/0/07/SpongeBob_SquarePants.png/revision/latest?cb=20171228024014"
-        },
-        {
-            comment: "this is the third comment",
-            username: "zeke",
-            imgLink: "https://www.stickpng.com/assets/images/5cb78e867ff3656569c8cebe.png"
-        },
-        {
-            comment: "this is the fourth comment",
-            username: "test",
-            imgLink: "https://vignette.wikia.nocookie.net/spongebobgalaxy/images/0/07/SpongeBob_SquarePants.png/revision/latest?cb=20171228024014"
-        },
-        {
-            comment: "this is the fifth comment",
-            username: "zeke",
-            imgLink: "https://www.stickpng.com/assets/images/5cb78e867ff3656569c8cebe.png"
-        }
-    ]
-}
-
 $(document).ready(function () {
     $('.collapsible').collapsible();
 
@@ -40,7 +10,6 @@ function buildTabs() {
     getTabs(function () {
         //check if la
         let tabID = $('li.tab > a.active').attr('tab_id');
-        console.log(tabID)
         $('.tabs').tabs();
         getArticles(tabID);
     })
@@ -77,8 +46,6 @@ function getTabs(callback) {
 
 
 function makeTab(obj, bool) {
-    console.log(obj)
-    console.log(bool);
     let li = $('<li>', { class: 'tab col s3' });
     let a = $('<a>', {
         class: "tab-btn",
@@ -88,19 +55,17 @@ function makeTab(obj, bool) {
     if (bool) { a.addClass("active") }
     return li;
 }
-//CHANGE TO ONLY GET THE ONE TAB'S ARTICLES
+
 function getArticles(tabID) {
     $('.article-list').empty()
     $.ajax({
         method: "GET",
-        url: "/articles/"+tabID
+        url: "/articles/" + tabID
     })
         // With that done
         .then(function (data) {
-            // Log the response
-            articles = data[0].articles
-            console.log(data);
-            console.log(articles);
+            articles = data.articles;
+            console.log(articles)
             for (var i in articles) {
                 makeArticleRow(articles[i]);
                 // checks if logged in already, function is in app.js but must wait for this call to end
@@ -122,24 +87,21 @@ function makeArticleRow(obj) {
     let liTwo = $('<li>').appendTo(commentBox);
     let commentHeader = $('<div>', { class: "collapsible-header comment-header" }).text('Comments').appendTo(liTwo);
     let commentBody = $('<div>', { class: "collapsible-body" }).appendTo(liTwo);
-    let commentDiv = $('<div>', { class: "container comment-container", style: "max-height: 250px; overflow: scroll;" }).appendTo(commentBody);
+    let commentDiv = $('<div>', { class: "container comment-container", "articleID": obj._id, style: "max-height: 250px; overflow: scroll;" }).appendTo(commentBody);
 
-
-    //CHANGE COMMENT TO LIST HERE
-    //COMMENTED OUT FOR TESTING !!!!!!!!!!!!! CHANGE BACK !!!!!!!!!!!!!!!!!!!
-    //if (obj.comments.length > 0) {
-    if (testOBJ.comments.length > 0) {
-        let commentList = $('<ul>', { class: 'collection' }).appendTo(commentDiv);
-        //  for (var i in obj.comments) {
-        for (var i in testOBJ.comments) {
-            //let comment = populateComments(obj.comments[i]);
-            let comment = populateComments(testOBJ.comments[i]);
-
+    let commentList = $('<ul>', { class: 'collection comment-collection', "articleID": obj._id }).appendTo(commentDiv);
+    if (obj.comments.length > 0) {
+          for (var i in obj.comments) {
+            let comment = populateComments(obj.comments[i]);
             comment.appendTo(commentList)
         }
-
     } else {
-        let pCom = $('<p>').text("No Comments Yet").appendTo(commentDiv);
+        let comment = populateComments({
+            body: "No Comments Yet",
+            user: {}
+        });
+            comment.addClass("comment-placeholder")
+            comment.appendTo(commentList)
     }
     $('<br>').appendTo(commentBody);
     $('<div>', { class: 'divider' }).appendTo(commentBody);
@@ -172,11 +134,11 @@ function makeArticleRow(obj) {
 
 function populateComments(obj) {
 
-    // MAKE COMMENT WITH USERNAME AND IMAGE
+
     let comment = $('<li>', { class: "collection-item avatar", style: "height:auto" });
-    $('<img>', { src: obj.imgLink, class: "circle", style: "height:25px; width: 25px;" }).appendTo(comment);
-    $('<span>', { class: "title" }).text(obj.username).appendTo(comment);
-    $('<p>').text(obj.comment).appendTo(comment);
+    $('<img>', { src: obj.user.imgLink, class: "circle", style: "height:25px; width: 25px;" }).appendTo(comment);
+    $('<span>', { class: "title" }).text(obj.user.username).appendTo(comment);
+    $('<p>').text(obj.body).appendTo(comment);
 
     return comment;
 }
@@ -190,24 +152,28 @@ function changeCommentTextBox(bool) {
         // show submit btn
         $(".submit-comment").removeClass("hide");
         // ADD AVATAR IMG to span w/ class "comment-avatar", link in session storage
+        $(".comment-avatar").find('img').remove()
         $('<img>', { src: sessionStorage.getItem("imgLink"), class: "circle prefix", style: "height:50px; width: 50px; margin-right:5px;" }).prependTo(".comment-avatar");
         //<img src="images/yuna.jpg" alt="" class="circle"></img>
+        $('.materialize-textarea').val('');
+        M.textareaAutoResize($('.materialize-textarea'));
     } else {
         // IF FALSE REPLACE WITH "LOGIN TO COMMENT"
         // hide submit btn
         $(".submit-comment").addClass("hide");
         //DO THIS!!!!!
-        // $('.materialize-textarea').val('Login to comment');
-        // M.textareaAutoResize($('.materialize-textarea'));
+        $('.materialize-textarea').val('Login to comment');
+        M.textareaAutoResize($('.materialize-textarea'));
     }
 }
 
 // ON CLICK FOR ADD COMMENT
 // Submit comment function
 $(document).on("click", ".submit-comment", function () {
+    //let thisComCollection = $(this).parents('.collapsible-body').find('.comment-collection')
     event.preventDefault();
     let articleID = $(this).attr("articleID");
-    console.log(articleID)
+    //console.log(articleID)
     event.preventDefault()
     $.ajax({
         method: "POST",
@@ -217,16 +183,22 @@ $(document).on("click", ".submit-comment", function () {
             body: $("#comment_text_" + articleID).val()
         }
     })
-        // With that done
         .then(function (data) {
-            console.log(data)
+            //console.log(data)
+            data.user = {
+                _id: sessionStorage.getItem("userID"),
+                imgLink: sessionStorage.getItem("imgLink"),
+                username: sessionStorage.getItem("username"),
+            }
+            let comment = populateComments(data);
+            $("div.comment-container[articleID='"+ articleID +"']:has(li.comment-placeholder)").empty()
+            comment.appendTo("div.comment-container[articleID='"+ articleID +"']")
         });
 });
 
 //onclick for scraping date and articles
 $(document).on("click", ".scrape-btn", function () {
     event.preventDefault();
-    console.log('hit')
     //clear this elemt from tab ul
     $('.scrape-tab').remove()
     // get req for scraping
@@ -235,7 +207,6 @@ $(document).on("click", ".scrape-btn", function () {
         url: "/scrape"
     })
         .then(function (data) {
-            console.log(data.lastTab)
             $('li.tab > a.active').removeClass("active");
             let newTab = makeTab(data.lastTab, true);
             newTab.appendTo('ul.tabs');
@@ -247,27 +218,12 @@ $(document).on("click", ".scrape-btn", function () {
 $(document).on("click", ".tab-btn", function () {
     event.preventDefault();
     let tabID = $(this).attr("tab_id")
-    getArticles(tabID)
-
-    // //clear this elemt from tab ul
-    // $('.scrape-tab').remove()
-    // // get req for scraping
-    // $.ajax({
-    //     method: "GET",
-    //     url: "/scrape"
-    // })
-    //     .then(function (data) {
-    //         console.log(data.lastTab)
-    //         $('li.tab > a.active').removeClass("active");
-    //         let newTab = makeTab(data.lastTab, true);
-    //         newTab.appendTo('ul.tabs');
-    //     });
+    getArticles(tabID);
 });
 
 
 //scrolls to bottom of comments if there are any
 $(document).on("click", ".comment-header", function () {
-    console.log("HIT")
     let box = $(this).next().find('.comment-container');
     box.animate({ scrollTop: $(box).prop("scrollHeight") }, 1000);
 });

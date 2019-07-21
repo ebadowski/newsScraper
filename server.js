@@ -10,8 +10,12 @@ var ObjectID = require('mongodb').ObjectID;
 var axios = require("axios");
 var cheerio = require("cheerio");
 
-
-
+/* Things to do
+*     comment length w/ materialize char counter
+*     phone validation
+*     load time
+*
+*/
 // Require all models
 var db = require("./models");
 
@@ -36,15 +40,7 @@ app.use(express.static("public"));
 var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/newsscraper";
 
 mongoose.connect(MONGODB_URI);
-// // Database configuration
-// var databaseUrl = "newsscraper";
-// var collections = ["scrapedData"];
 
-// // Hook mongojs configuration to the db variable
-// var db = mongojs(databaseUrl, collections);
-// db.on("error", function (error) {
-//   console.log("Database Error:", error);
-// });
 //Body Parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -59,41 +55,31 @@ app.get("/", function (req, res) {
   res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 
-// CURRENTLY NOT POPULATING USER
+// gets all tabs
 app.get("/tabs/all", function (req, res) {
   db.Tab.find({})
     .then(function (tabs) {
       res.json(tabs);
     });
 });
-///////////////////////////////////////////////////////////////////////
-// CURRENTLY NOT POPULATING USER
-// app.get("/tab/populate", function (req, res) {
+
+// populates all fields for the specified tab 
   app.get("/articles/:id", function (req, res) {
-    db.Tab.find({_id: req.params.id})
-      .populate("articles")
-      .populate("comments")
-      //populate users in comments excluding phone number
-      .populate("user", "-phone")
-      //..populate("users", "-phone")
+    db.Tab.findOne({_id: req.params.id})
+    .populate({
+      path: 'articles',
+      populate: { 
+        path: 'comments', 
+        populate: {path: 'user', select:'-phone'}
+      }
+    })
       .then(function (articles) {
         res.json(articles);
       });
   });
-// CURRENTLY NOT POPULATING USER
-// app.get("/tab/populate", function (req, res) {
-  app.get("/all", function (req, res) {
-  db.Article.find({})
-    .populate("comments")
-    //populate users in comments excluding phone number
-    .populate("user", "-phone")
-    //..populate("users", "-phone")
-    .then(function (articles) {
-      res.json(articles);
-    });
-});
-////////////////////////////////////////////////////////////////
-app.get("/scrape", function (req, res) {
+
+// scrapes, making the date tab and article inserts
+  app.get("/scrape", function (req, res) {
   scraperResponse = { error: false, message: [], lastTab:{} }
   let today = new Date;
   today = today.toDateString().substring(4);
@@ -169,8 +155,8 @@ app.post("/comment/:id", function (req, res) {
         { $push: { comments: result._id } },
         function (err, resultArt) {
           if (err) throw err;
-          res.send(resultArt)
-        });
+        })
+        res.send(result.populate('user'))
     });
   }
   else {
