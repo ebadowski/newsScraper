@@ -22,7 +22,8 @@ function getTabs(callback) {
         url: "/tabs/all"
     })
         .then(function (data) {
-            let tabUL = $('<ul>', { class: "tabs" });
+            let tabUL = $('<ul>', { class: "tabs" }).appendTo('.tabs-div');
+        
             if (!data.date) {
                 makeAddTab(tabUL)
                 callback();
@@ -42,7 +43,7 @@ function getTabs(callback) {
                     makeAddTab(tabUL)
                 }
 
-                tabUL.appendTo('.tabs-div');
+                
                 callback();
             }
 
