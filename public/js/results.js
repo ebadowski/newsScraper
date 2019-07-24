@@ -87,9 +87,9 @@ function makeArticleRow(obj) {
     let liTwo = $('<li>').appendTo(commentBox);
     let commentHeader = $('<div>', { class: "collapsible-header comment-header" }).text('Comments').appendTo(liTwo);
     let commentBody = $('<div>', { class: "collapsible-body" }).appendTo(liTwo);
-    let commentDiv = $('<div>', { class: "container comment-container", "articleID": obj._id, style: "max-height: 250px; overflow: scroll;" }).appendTo(commentBody);
+    let commentDiv = $('<div>', { class: "container comment-container", "articleID": obj._id.$oid, style: "max-height: 250px; overflow: scroll;" }).appendTo(commentBody);
 
-    let commentList = $('<ul>', { class: 'collection comment-collection', "articleID": obj._id }).appendTo(commentDiv);
+    let commentList = $('<ul>', { class: 'collection comment-collection', "articleID": obj._id.$oid }).appendTo(commentDiv);
     if (obj.comments.length > 0) {
           for (var i in obj.comments) {
             let comment = populateComments(obj.comments[i]);
@@ -112,11 +112,11 @@ function makeArticleRow(obj) {
     $('<br>').appendTo(form);
     let row = $('<div>', { class: "row" }).appendTo(form)
     let field = $('<div>', { class: "input-field comment-avatar", style: 'width: 100%' }).appendTo(row);
-    $('<textarea>', { id: ("comment_text_" + obj._id), class: "materialize-textarea right", style: "width: 80%; margin-left:5px;" }).appendTo(field);
-    $('<label>', { for: ("comment_text_" + obj._id), style: "padding-left:25px;" }).text("Comment").appendTo(field);
+    $('<textarea>', { id: ("comment_text_" + obj._id.$oid), class: "materialize-textarea right", style: "width: 80%; margin-left:5px;" }).appendTo(field);
+    $('<label>', { for: ("comment_text_" + obj._id.$oid), style: "padding-left:25px;" }).text("Comment").appendTo(field);
 
     $('<a>', {
-        "articleID": obj._id,
+        "articleID": obj._id.$oid,
         class: 'waves-effect waves-teal btn-flat right submit-comment'
     }).text('Submit').appendTo(form);
     $('<br>').appendTo(form);
@@ -124,7 +124,7 @@ function makeArticleRow(obj) {
     // adds link button
     $('<div>', { class: 'divider' }).appendTo(divBody);
     let linkbtn = $('<a>', {
-        id: "link_" + obj._id,
+        id: "link_" + obj._id.$oid,
         href: obj.link,
         class: 'waves-effect waves-teal btn-flat right'
     }).text('Link').appendTo(divBody)

@@ -34,7 +34,7 @@ $(document).on("click", "#new_user_btn", function (event) {
             sessionStorage.setItem("username", data.username);
             sessionStorage.setItem("phone", data.phone);
             sessionStorage.setItem("imgLink", data.imgLink);
-            sessionStorage.setItem("userID", data._id);
+            sessionStorage.setItem("userID", data._id.$oid);
             loggedIn();
         });
 });
@@ -55,7 +55,7 @@ $(document).on("click", "#login_btn", function () {
             sessionStorage.setItem("username", data.username);
             sessionStorage.setItem("phone", data.phone);
             sessionStorage.setItem("imgLink", data.imgLink);
-            sessionStorage.setItem("userID", data._id);
+            sessionStorage.setItem("userID", data._id.$oid);
             loggedIn()
         });
 });
