@@ -65,7 +65,7 @@ app.get("/tabs/all", function (req, res) {
 
 // populates all fields for the specified tab 
   app.get("/articles/:id", function (req, res) {
-    db.Tab.findOne({_id:ObjectId(req.params.id.$oid)})
+    db.Tab.findOne({_id:ObjectId(req.params.id)})
     .populate({
       path: 'articles',
       populate: { 
@@ -144,7 +144,7 @@ app.get("/tabs/all", function (req, res) {
 //Route to add comment to article
 app.post("/comment/:id", function (req, res) {
   console.log(req.body)
-  let articleID = req.params.id.$oid;
+  let articleID = req.params.id;
   let newValues = req.body;
   if (newValues.body && newValues.user) {
     db.Comment.create(newValues, function (err, result) {
