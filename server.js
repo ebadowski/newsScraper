@@ -65,7 +65,7 @@ app.get("/tabs/all", function (req, res) {
 
 // populates all fields for the specified tab 
   app.get("/articles/:id", function (req, res) {
-    db.Tab.findOne({_id: req.params.id})
+    db.Tab.findOne({_id:ObjectId(req.params.id)})
     .populate({
       path: 'articles',
       populate: { 
@@ -151,7 +151,7 @@ app.post("/comment/:id", function (req, res) {
       if (err) throw err;
       //res.send(result)
       db.Article.update(
-        { _id: articleID },
+        { _id: ObjectId(articleID) },
         { $push: { comments: result._id } },
         function (err, resultArt) {
           if (err) throw err;
