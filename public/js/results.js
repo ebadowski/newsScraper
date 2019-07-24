@@ -25,6 +25,7 @@ function getTabs(callback) {
             let tabUL = $('<ul>', { class: "tabs" });
             if (!data[i]) {
                 makeAddTab(tabUL)
+                callback();
             }
             //console.log(data);
             
