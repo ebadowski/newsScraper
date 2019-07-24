@@ -11,7 +11,13 @@ function buildTabs() {
         //check if la
         let tabID = $('li.tab > a.active').attr('tab_id');
         $('.tabs').tabs();
-        getArticles(tabID);
+        if(tabID){
+            getArticles(tabID);
+        }
+        else{
+            $('<p>').text('no dates added, add a date above!').appendTo('.article-list')
+        }
+        
     })
 }
 
