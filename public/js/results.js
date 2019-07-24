@@ -66,7 +66,7 @@ function makeTab(obj, bool) {
     let li = $('<li>', { class: 'tab col s3' });
     let a = $('<a>', {
         class: "tab-btn",
-        tab_id: obj._id
+        tab_id: obj._id.$oid
     }).text(obj.date).appendTo(li);
 
     if (bool) { a.addClass("active") }
