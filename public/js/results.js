@@ -23,7 +23,7 @@ function getTabs(callback) {
     })
         .then(function (data) {
             let tabUL = $('<ul>', { class: "tabs" });
-            if (!data) {
+            if (!data.date) {
                 makeAddTab(tabUL)
                 callback();
             }
