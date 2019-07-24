@@ -37,7 +37,9 @@ app.use(express.static("public"));
 // // Connect to the Mongo DB
 // mongoose.connect("mongodb://localhost/unit18Populater", { useNewUrlParser: true });
 // If deployed, use the deployed database. Otherwise use the local mongoHeadlines database
-var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/newsscraper";
+// var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/newsscraper";
+// mongodb://heroku_bpmjqw3c:m2gss78coe865mb52vhkn423nb@ds353457.mlab.com:53457/heroku_bpmjqw3c
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://ebadowski:badowski4@ds353457.mlab.com:53457/heroku_bpmjqw3c";
 
 mongoose.connect(MONGODB_URI);
 
@@ -87,7 +89,7 @@ app.get("/tabs/all", function (req, res) {
   // creates new date tab
   db.Tab.create({ date: today })
     .catch(function (error) {
-      console.log("Tab Post Failed!");
+      console.log("Tab Post Failed!"); 
       scraperResponse.error = true;
       scraperResponse.message.push("Tab Post Failed!");
     })
