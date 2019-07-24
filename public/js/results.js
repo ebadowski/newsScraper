@@ -23,27 +23,29 @@ function getTabs(callback) {
     })
         .then(function (data) {
             let tabUL = $('<ul>', { class: "tabs" });
-            if (!data[i]) {
+            if (!data) {
                 makeAddTab(tabUL)
                 callback();
-                return
             }
-            //console.log(data);
-            
-            for (var i in data) {
-                let newTab = makeTab(data[i], (data.length - 1 == i));
-                newTab.appendTo(tabUL)
+            else {
+                //console.log(data);
+
+                for (var i in data) {
+                    let newTab = makeTab(data[i], (data.length - 1 == i));
+                    newTab.appendTo(tabUL)
+                }
+
+                //if date of last entry != today
+                let today = new Date;
+                today = today.toDateString().substring(4);
+                if (data[i].date != today) {
+                    makeAddTab(tabUL)
+                }
+
+                tabUL.appendTo('.tabs-div');
+                callback();
             }
 
-            //if date of last entry != today
-            let today = new Date;
-            today = today.toDateString().substring(4);
-            if (data[i].date != today) {
-                makeAddTab(tabUL)
-            }
-
-            tabUL.appendTo('.tabs-div');
-            callback();
         });
 }
 function makeAddTab(tabUL) {
