@@ -26,6 +26,7 @@ function getTabs(callback) {
             if (!data[i]) {
                 makeAddTab(tabUL)
                 callback();
+                return
             }
             //console.log(data);
             
