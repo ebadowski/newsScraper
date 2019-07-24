@@ -32,7 +32,7 @@ function getTabs(callback) {
             //if date of last entry != today
             let today = new Date;
             today = today.toDateString().substring(4);
-            if (data[i].date != today || !data[i].date ) {
+            if (!data[i].date || data[i].date != today  ) {
                 let li = $('<li>', { class: 'scrape-tab tab col s3' });
                 let a = $('<a>', { class: "scrape-btn" }).appendTo(li);
                 $('<i>', { class: 'material-icons' }).text("add_circle_outline").appendTo(a);
