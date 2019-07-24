@@ -22,8 +22,12 @@ function getTabs(callback) {
         url: "/tabs/all"
     })
         .then(function (data) {
-            //console.log(data);
             let tabUL = $('<ul>', { class: "tabs" });
+            if (!data[i]) {
+                makeAddTab(tabUL)
+            }
+            //console.log(data);
+            
             for (var i in data) {
                 let newTab = makeTab(data[i], (data.length - 1 == i));
                 newTab.appendTo(tabUL)
@@ -32,18 +36,20 @@ function getTabs(callback) {
             //if date of last entry != today
             let today = new Date;
             today = today.toDateString().substring(4);
-            if (!data[i].date || data[i].date != today  ) {
-                let li = $('<li>', { class: 'scrape-tab tab col s3' });
-                let a = $('<a>', { class: "scrape-btn" }).appendTo(li);
-                $('<i>', { class: 'material-icons' }).text("add_circle_outline").appendTo(a);
-                li.appendTo(tabUL)
+            if (data[i].date != today) {
+                makeAddTab(tabUL)
             }
 
             tabUL.appendTo('.tabs-div');
             callback();
         });
 }
-
+function makeAddTab(tabUL) {
+    let li = $('<li>', { class: 'scrape-tab tab col s3' });
+    let a = $('<a>', { class: "scrape-btn" }).appendTo(li);
+    $('<i>', { class: 'material-icons' }).text("add_circle_outline").appendTo(a);
+    li.appendTo(tabUL)
+}
 
 function makeTab(obj, bool) {
     let li = $('<li>', { class: 'tab col s3' });
@@ -91,7 +97,7 @@ function makeArticleRow(obj) {
 
     let commentList = $('<ul>', { class: 'collection comment-collection', "articleID": obj._id.$oid }).appendTo(commentDiv);
     if (obj.comments.length > 0) {
-          for (var i in obj.comments) {
+        for (var i in obj.comments) {
             let comment = populateComments(obj.comments[i]);
             comment.appendTo(commentList)
         }
@@ -100,8 +106,8 @@ function makeArticleRow(obj) {
             body: "No Comments Yet",
             user: {}
         });
-            comment.addClass("comment-placeholder")
-            comment.appendTo(commentList)
+        comment.addClass("comment-placeholder")
+        comment.appendTo(commentList)
     }
     $('<br>').appendTo(commentBody);
     $('<div>', { class: 'divider' }).appendTo(commentBody);
@@ -191,8 +197,8 @@ $(document).on("click", ".submit-comment", function () {
                 username: sessionStorage.getItem("username"),
             }
             let comment = populateComments(data);
-            $("div.comment-container[articleID='"+ articleID +"']:has(li.comment-placeholder)").empty()
-            comment.appendTo("div.comment-container[articleID='"+ articleID +"']")
+            $("div.comment-container[articleID='" + articleID + "']:has(li.comment-placeholder)").empty()
+            comment.appendTo("div.comment-container[articleID='" + articleID + "']")
         });
 });
 
